@@ -24,6 +24,21 @@ class HomeApi {
       return 12742 * asin(sqrt(a));
     }
 
+    DateTime date = DateTime.now();
+    String time = date.year.toString() +
+        "-" +
+        date.month.toString() +
+        "-" +
+        date.day.toString() +
+        "T" +
+        date.hour.toString() +
+        ":" +
+        date.minute.toString() +
+        ":" +
+        date.second.toString() +
+        "." +
+        date.millisecond.toString();
+
     // print("lat ${homePageController.lat.value}");
     // print("long ${homePageController.long.value}");
     // print("New lat ${homePageController.newlat.value}");
@@ -48,7 +63,7 @@ class HomeApi {
         {
           "longitude": homePageController.newlong.value,
           "latitude": homePageController.newlat.value,
-          "eventDateTime": "2021-06-26T14:29:08.596",
+          "eventDateTime": time,
           "distanceTravelledMtr": distance
         }
       ],

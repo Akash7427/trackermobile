@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:trackermobile/controller/homepage_controller.dart';
 import 'package:trackermobile/services/home_api.dart';
 import 'package:trackermobile/shared/size_config.dart';
@@ -85,7 +86,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    Timer.periodic(Duration(minutes: 1), (timer) async {
+    Timer.periodic(Duration(minutes: 10), (timer) async {
       await _getCurrentLocation();
       String distance = await HomeApi().performUpload();
       if (distance != "") {
@@ -106,9 +107,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   SizedBox(
                     height: SizeConfig.safeBlockVertical * 50,
                   ),
-                  RaisedButton(onPressed: () {
-                    print(DateTime.now());
-                  }),
                 ],
               ),
             )),
