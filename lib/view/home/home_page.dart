@@ -8,6 +8,26 @@ import 'package:intl/intl.dart';
 import 'package:trackermobile/controller/homepage_controller.dart';
 import 'package:trackermobile/services/home_api.dart';
 import 'package:trackermobile/shared/size_config.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:trackermobile/services/notification.dart' as notif;
+
+const fetchBackground = "fetchBackground";
+
+void callbackDispatcher() {
+  Workmanager.executeTask((task, inputData) async {
+    switch (task) {
+      case fetchBackground:
+        Geolocator geoLocator = Geolocator()
+          ..forceAndroidLocationManager = true;
+        Position userLocation = await geoLocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high);
+        notif.Notification notification = new notif.Notification();
+        notification.showNotificationWithoutSound(userLocation);
+        break;
+    }
+    return Future.value(true);
+  });
+}
 
 class HomePage extends StatefulWidget {
   @override
@@ -25,15 +45,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
-    var androidInitilize = new AndroidInitializationSettings('app_icon');
-    var iOSinitilize = new IOSInitializationSettings();
-    var initilizationsSettings =
-        new InitializationSettings(androidInitilize, iOSinitilize);
-    fltrnoti = new FlutterLocalNotificationsPlugin();
-    fltrnoti.initialize(initilizationsSettings,
-        onSelectNotification: notificationSelected);
+    Workmanager.initialize(
+      callbackDispatcher,
+      isInDebugMode: true,
+    );
+
+    Workmanager.registerPeriodicTask(
+      "1",
+      fetchBackground,
+      frequency: Duration(minutes: 15),
+    );
 
     _getCurrentLocation();
+    upload();
+  }
+
+  void upload() async {
+    String distance = await HomeApi().performUpload();
+    if (distance != "") {
+      notif.Notification notification = new notif.Notification();
+      notification.showDistanceNotificationWithoutSound(distance);
+    }
   }
 
   _getCurrentLocation() async {
@@ -59,22 +91,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     await Future.delayed(Duration(seconds: 5));
   }
 
-  Future _showNotification(String distance) async {
-    var androidDetails = new AndroidNotificationDetails(
-        "Channel ID", "Akash More", "Tracker Mobile",
-        importance: Importance.Max);
-    var iSODetails = new IOSNotificationDetails();
-    var generalNotificationDetails =
-        new NotificationDetails(androidDetails, iSODetails);
-
-    await fltrnoti.show(
-      0,
-      "Location Uploaded",
-      "Distance Cover : $distance KM",
-      generalNotificationDetails,
-    );
-  }
-
   Future notificationSelected(String payload) async {
     showDialog(
       context: context,
@@ -86,11 +102,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    Timer.periodic(Duration(minutes: 10), (timer) async {
+    Timer.periodic(Duration(minutes: 15), (timer) async {
       await _getCurrentLocation();
       String distance = await HomeApi().performUpload();
       if (distance != "") {
-        _showNotification(distance);
+        notif.Notification notification = new notif.Notification();
+        notification.showDistanceNotificationWithoutSound(distance);
       }
     });
     return SafeArea(

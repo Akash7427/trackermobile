@@ -24,6 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  workmanager: ^0.2.0
   flutter_local_notifications: ^1.4.4+2
   geolocator: ^5.3.1
   get: ^4.1.4
